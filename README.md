@@ -6,7 +6,8 @@ This program allows you to use a MIDI controler to manipulate the parameters of 
 
 ## Prerequisites
 This program, as currently written, requires the Novation Launch Control XL Controller.
-The controller can be purchased here: http://smile.amazon.com/dp/B1LXBC92M/
+The controller can be purchased here:
+http://smile.amazon.com/Novation-Launch-Control-XL-Controller/dp/B00LXBC92M/
 
 ## Setup
 First, install the haskell platform:

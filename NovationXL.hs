@@ -1,6 +1,7 @@
 module NovationXL(NovationXL, NovationXLState, initNovationXL, initNovationXLState, updateNovationXLState) where
 -- This module exposes the knobs and sliders of the NovationXL controller as a Matrix.
--- The controller can be purchased here: http://smile.amazon.com/dp/B00LXBC92M/
+-- The controller can be purchased here:
+-- http://smile.amazon.com/Novation-Launch-Control-XL-Controller/dp/B00LXBC92M/
 
 import qualified Data.Foldable as Foldable
 import Data.Maybe
