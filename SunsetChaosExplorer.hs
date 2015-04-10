@@ -1,5 +1,6 @@
 import qualified Graphics.UI.GLUT as G
 import Data.Matrix
+import Data.Maybe
 import Data.IORef
 import NovationXL
 
@@ -81,10 +82,11 @@ decapitate n (a:as) = decapitate (n-1) as
 
 display :: NovationXL -> (IORef NovationXLState) -> G.DisplayCallback
 display novationXL state = do 
-  oldState <- readIORef state
-  newState <- updateNovationXLState novationXL oldState
-  writeIORef state newState
+  update <- readNovationXLUpdate novationXL
+  modifyIORef' state (fromMaybe id update)
+  currentState <- readIORef state
   G.clear [G.ColorBuffer]
   G.renderPrimitive G.Points $
-    sequence_ $ map drawVec3D $ decapitate 10 $ take 20000 $ fractalPoints (stateToParameters newState)
+    sequence_ $ map drawVec3D $ decapitate 10 $ take 20000 $
+    fractalPoints (stateToParameters currentState)
   G.swapBuffers

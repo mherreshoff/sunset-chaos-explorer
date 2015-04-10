@@ -1,4 +1,5 @@
-module NovationXL(NovationXL, NovationXLState, initNovationXL, initNovationXLState, updateNovationXLState) where
+module NovationXL(NovationXL, NovationXLState, initNovationXL,
+                  initNovationXLState, readNovationXLUpdate) where
 -- This module exposes the knobs and sliders of the NovationXL controller as a Matrix.
 -- The controller can be purchased here:
 -- http://smile.amazon.com/Novation-Launch-Control-XL-Controller/dp/B00LXBC92M/
@@ -40,10 +41,12 @@ initNovationXL = do
       midiDeviceIsNovationXL d]
   maybe (return Nothing) openMidiDevice deviceId
 
-updateNovationXLState :: NovationXL -> NovationXLState -> IO (NovationXLState)
-updateNovationXLState nxl ns = do
+readNovationXLUpdate :: NovationXL -> IO (Maybe (NovationXLState -> NovationXLState))
+readNovationXLUpdate nxl = do
   readResult <- Midi.readEvents nxl
-  return $ either (foldl applyUpdate ns) (const ns) readResult
+  return $ f $ catMaybes $ map getUpdate $ either id (const []) readResult where
+    f [] = Nothing
+    f updates = Just $ foldr1 (.) updates
   -- TODO: error handling
 
 novationRowStarts :: [(Int, Int)]
@@ -59,8 +62,5 @@ findUpdatePosition event = Foldable.msum $ map f novationRowStarts where
 findUpdateValue :: Midi.PMEvent -> Double
 findUpdateValue = (/127.0) . fromIntegral . Midi.data2 . Midi.message
 
-applyUpdate :: NovationXLState -> Midi.PMEvent -> NovationXLState
-applyUpdate ns event = maybe ns f (findUpdatePosition event) where
-  f pos = setElem (findUpdateValue event) pos ns
-  
-
+getUpdate :: Midi.PMEvent -> Maybe (NovationXLState -> NovationXLState)
+getUpdate event = fmap (setElem (findUpdateValue event)) (findUpdatePosition event)
