@@ -46,7 +46,7 @@ readNovationXLUpdate nxl = do
   readResult <- Midi.readEvents nxl
   return $ f $ catMaybes $ map getUpdate $ either id (const []) readResult where
     f [] = Nothing
-    f updates = Just $ foldr1 (.) updates
+    f updates = Just $ foldr1 (flip (.)) updates
   -- TODO: error handling
 
 novationRowStarts :: [(Int, Int)]
