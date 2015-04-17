@@ -1,20 +1,22 @@
 // Novation Launch Control XL Midi setup:
+
+var has_midi_controls = false;
 function SetupMidiHandler(midi) {
   console.log("midi ready.");
-  var found_launch_control = false;
   midi.inputs.forEach(function(input, port) {
     console.log( "Input port [type:'" + input.type + "'] id:'" + input.id +
     "' manufacturer:'" + input.manufacturer + "' name:'" + input.name +
     "' version:'" + input.version + "'" );
     if (input.name == "Launch Control XL") {
       console.log("Found launch control XL.");
-      found_launch_control = true;
+      has_midi_controls = true;
       input.onmidimessage = MidiMessageEventHandler
     }
   });
 
-  if (!found_launch_control) {
-    alert("Couldn't find Launch Control XL.  Plug it in and reload.");
+  if (!has_midi_controls) {
+    alert("Couldn't find Launch Control XL, running in random mode.");
+    midi_controls[0][0] = 0.2;
   }
 }
 
@@ -108,6 +110,11 @@ function RenderFrame() {
 
 function EventLoop() {
   window.requestAnimationFrame(EventLoop);
+  if (!has_midi_controls) {
+    for (var i = 0; i < 8; ++i) {
+      midi_controls[0][i] += 0.001 * Math.random()
+    }
+  }
   RenderFrame();
 }
 
