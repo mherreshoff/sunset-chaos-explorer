@@ -95,12 +95,17 @@ var old_width = 0;
 var old_height = 0;
 var image = null;
 
-var color_offset_options = [50, 100, 150, 200];
 var color_offsets = [200, 200, 100];
 
 midi_button_press = function (group, idx) {
   if (group < 3) {
-    color_offsets[group] = color_offset_options[idx];
+    var color = (4*group + idx)*2*Math.PI/12;
+    color_offsets[0] = Math.min(200, 150+100*Math.sin(color))
+    color_offsets[1] = Math.min(200, 150+100*Math.sin(color+2))
+    color_offsets[2] = Math.min(200, 150+100*Math.sin(color+4))
+  }
+  if (group == 3) {
+    midi_controls[0][idx] += Math.random(1) * 0.1
   }
 }
 
