@@ -5,11 +5,12 @@ This program allows you to use a MIDI controler to manipulate the parameters of 
 (The third dimension is rendered as color.)
 
 ## Prerequisites
-There are two versions of this program.  Both versions as currently written, requires the Novation Launch Control XL Controller.  (Though if the javascript version is launched without a controller it will fall back to random mode.)
+There are two versions of this program.  Both versions as currently written, require the Novation Launch Control XL Controller.  (If the javascript version is launched without a controller or web midi support it will fall back to random mode.)
+
 The controller can be purchased here:
 http://smile.amazon.com/Novation-Launch-Control-XL-Controller/dp/B00LXBC92M/
 
-The javascript version is currently faster.
+The javascript version is currently faster and has better fading.
 
 ## Javscript Setup
 This javascript depends on the web MIDI api.
