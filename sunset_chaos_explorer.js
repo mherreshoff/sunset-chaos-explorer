@@ -68,25 +68,36 @@ function CoordToY(p) {
   return Math.round((p/6.0 + 0.5) * canvas.height);
 }
 
+var kParamChangePerFrame = 0.2;
 var kFadePerFrame = 0.9;
 var kIterationsPerFrame = 10000;
 
-var old_p = null;
+var frame_start_params = null;
+var frame_end_params = null;
 var old_width = 0;
 var old_height = 0;
 var image = null;
 function RenderFrame() {
   // Read the parameters from the controls:
-  var p = new Array();
-  var new_p = new Array();
-
+  var input_params = new Array(18);
   for (var i = 0; i < 8; ++i) {
-    new_p[i] = Math.PI*2 * (midi_controls[0][i] + midi_controls[1][i] / 10.0);
-    new_p[9+i] = 1.0 + (midi_controls[2][i] + midi_controls[3][i] / 10.0);
+    input_params[i] = Math.PI*2 * (midi_controls[0][i] + midi_controls[1][i] / 10.0);
+    input_params[9+i] = 1.0 + (midi_controls[2][i] + midi_controls[3][i] / 10.0);
   }
-  new_p[8] = 0; new_p[17] = 0;
-  if (!old_p) {
-    old_p = new_p;
+  input_params[8] = 0; input_params[17] = 0;
+
+  // Compute the range of motion for the parameters this frame
+  if (frame_end_params) {
+    for (var i = 0; i < input_params.length; ++i) {
+      frame_end_params[i] = kParamChangePerFrame * input_params[i] +
+        (1-kParamChangePerFrame) * frame_end_params[i];;
+    }
+  } else {
+    frame_end_params = input_params;
+  }
+
+  if (!frame_start_params) {
+    frame_start_params = frame_end_params;
   }
 
   // Draw the background:
@@ -112,13 +123,16 @@ function RenderFrame() {
   function f(p, idx, v) {
     return Math.cos(p[9+idx]*v+p[idx]);
   }
+  var p = new Array(18);
   for (var i = 0; i < kIterationsPerFrame; ++i){
     var new_frac = i/kIterationsPerFrame;
     var old_frac = 1 - new_frac;
-    for (var j = 0; j < new_p.length; ++j) {
-      p[j] = new_frac * new_p[j] + old_frac * old_p[j];
+    for (var j = 0; j < frame_end_params.length; ++j) {
+      p[j] = new_frac * frame_end_params[j] + old_frac * frame_start_params[j];
     }
+
     var fade = Math.pow(kFadePerFrame, old_frac);
+
     nx = f(p, 0, x) + f(p, 1, y) + f(p, 2, z);
     ny = f(p, 3, x) + f(p, 4, y) + f(p, 5, z);
     nz = f(p, 6, x) + f(p, 7, y) + f(p, 8, z);
@@ -137,9 +151,11 @@ function RenderFrame() {
     image.data[px_offset + 2] = blue;
   }
   canvas_context.putImageData(image, 0, 0);
+
+  // Setup for next frame:
   old_width = canvas.width;
   old_height = canvas.height;
-  old_p = new_p;
+  frame_start_params = frame_end_params;
 }
 
 function EventLoop() {
