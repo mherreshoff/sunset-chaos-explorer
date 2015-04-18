@@ -68,18 +68,23 @@ function CoordToY(p) {
   return Math.round((p/6.0 + 0.5) * canvas.height);
 }
 
+var old_p = null;
 var old_width = 0;
 var old_height = 0;
 var image = null;
 function RenderFrame() {
   // Read the parameters from the controls:
   var p = new Array();
+  var new_p = new Array();
 
   for (var i = 0; i < 8; ++i) {
-    p[i] = Math.PI*2 * (midi_controls[0][i] + midi_controls[1][i] / 10.0);
-    p[9+i] = 1.0 + (midi_controls[2][i] + midi_controls[3][i] / 10.0);
+    new_p[i] = Math.PI*2 * (midi_controls[0][i] + midi_controls[1][i] / 10.0);
+    new_p[9+i] = 1.0 + (midi_controls[2][i] + midi_controls[3][i] / 10.0);
   }
-  p[8] = 0; p[17] = 0;
+  new_p[8] = 0; new_p[17] = 0;
+  if (!old_p) {
+    old_p = new_p;
+  }
 
   // Draw the background:
   canvas.width = window.innerWidth * 0.9;
@@ -102,13 +107,18 @@ function RenderFrame() {
   // Render the strange attractor:
   var x = 0; var y = 0; var z = 0;
   var nx; var ny; var nz;
-  function f(idx, v) {
+  function f(p, idx, v) {
     return Math.cos(p[9+idx]*v+p[idx]);
   }
-  for (var i = 0; i < 20000; ++i){
-    nx = f(0, x) + f(1, y) + f(2, z);
-    ny = f(3, x) + f(4, y) + f(5, z);
-    nz = f(6, x) + f(7, y) + f(8, z);
+  var num_iterations = 20000;
+  for (var i = 0; i < num_iterations; ++i){
+    var frac = i/num_iterations;
+    for (var j = 0; j < new_p.length; ++j) {
+      p[j] = frac * new_p[j] + (1-frac) * old_p[j];
+    }
+    nx = f(p, 0, x) + f(p, 1, y) + f(p, 2, z);
+    ny = f(p, 3, x) + f(p, 4, y) + f(p, 5, z);
+    nz = f(p, 6, x) + f(p, 7, y) + f(p, 8, z);
     nz += 0.001 * Math.random();
     x = nx; y = ny; z = nz;
     var color = 3*z;
@@ -123,6 +133,7 @@ function RenderFrame() {
   canvas_context.putImageData(image, 0, 0);
   old_width = canvas.width;
   old_height = canvas.height;
+  old_p = new_p;
 }
 
 function EventLoop() {
