@@ -68,6 +68,9 @@ function CoordToY(p) {
   return Math.round((p/6.0 + 0.5) * canvas.height);
 }
 
+var kFadePerFrame = 0.9;
+var kIterationsPerFrame = 10000;
+
 var old_p = null;
 var old_width = 0;
 var old_height = 0;
@@ -93,10 +96,9 @@ function RenderFrame() {
 
   if (canvas.width == old_width && canvas.height == old_height) {
     var size = canvas.width * canvas.height;
-    console.log("fading.")
     for (var pix = 0; pix < size; ++pix) {
       for (var i = 0; i < 3; ++i) {
-        image.data[4*pix + i] *= 0.9;
+        image.data[4*pix + i] *= kFadePerFrame;
       }
     }
   } else {
@@ -110,21 +112,25 @@ function RenderFrame() {
   function f(p, idx, v) {
     return Math.cos(p[9+idx]*v+p[idx]);
   }
-  var num_iterations = 20000;
-  for (var i = 0; i < num_iterations; ++i){
-    var frac = i/num_iterations;
+  for (var i = 0; i < kIterationsPerFrame; ++i){
+    var new_frac = i/kIterationsPerFrame;
+    var old_frac = 1 - new_frac;
     for (var j = 0; j < new_p.length; ++j) {
-      p[j] = frac * new_p[j] + (1-frac) * old_p[j];
+      p[j] = new_frac * new_p[j] + old_frac * old_p[j];
     }
+    var fade = Math.pow(kFadePerFrame, old_frac);
     nx = f(p, 0, x) + f(p, 1, y) + f(p, 2, z);
     ny = f(p, 3, x) + f(p, 4, y) + f(p, 5, z);
     nz = f(p, 6, x) + f(p, 7, y) + f(p, 8, z);
     nz += 0.001 * Math.random();
     x = nx; y = ny; z = nz;
+    if (i < 10) {
+      continue;
+    }
     var color = 3*z;
-    var red = Math.round(200 + 50*Math.sin(color));
-    var green = Math.round(200 + 50*Math.sin(2+color));
-    var blue = Math.round(100 + 50*Math.sin(4+color));
+    var red = (200 + 50*Math.sin(color)) * fade;
+    var green = (200 + 50*Math.sin(2+color)) * fade;
+    var blue = (100 + 50*Math.sin(4+color)) * fade;
     var px_offset = 4 * (CoordToY(y) *canvas.width + CoordToX(x));
     image.data[px_offset] = red;
     image.data[px_offset + 1] = green;
