@@ -16,7 +16,6 @@ function SetupMidiHandler(midi) {
 
   if (!has_midi_controls) {
     alert("Couldn't find Launch Control XL, running in random mode.");
-    midi_controls[0][0] = 0.2;
   }
 }
 
@@ -51,7 +50,9 @@ function MidiMessageEventHandler(event) {
 }
 
 function SetupMidi() {
-  navigator.requestMIDIAccess().then(SetupMidiHandler, MidiFail);
+  if (navigator.requestMIDIAccess) {
+    navigator.requestMIDIAccess().then(SetupMidiHandler, MidiFail);
+  }
 }
 
 
@@ -70,14 +71,12 @@ function CoordToY(p) {
 function RenderFrame() {
   // Read the parameters from the controls:
   var p = new Array();
-  var q = new Array();
 
   for (var i = 0; i < 8; ++i) {
     p[i] = Math.PI*2 * (midi_controls[0][i] + midi_controls[1][i] / 10.0);
-    q[i] = 1.0 + (midi_controls[2][i] + midi_controls[3][i] / 10.0);
+    p[9+i] = 1.0 + (midi_controls[2][i] + midi_controls[3][i] / 10.0);
   }
-  p[8] = 0;
-  q[8] = 0;
+  p[8] = 0; p[17] = 0;
 
   // Draw the background:
   canvas.width = window.innerWidth * 0.9;
@@ -90,10 +89,13 @@ function RenderFrame() {
   // Render the strange attractor:
   var x = 0; var y = 0; var z = 0;
   var nx; var ny; var nz;
+  function f(idx, v) {
+    return Math.cos(p[9+idx]*v+p[idx]);
+  }
   for (var i = 0; i < 20000; ++i){
-    nx = Math.cos(q[0]*x+p[0]) + Math.cos(q[1]*y+p[1]) + Math.cos(q[2]*z+p[2]);
-    ny = Math.cos(q[3]*x+p[3]) + Math.cos(q[4]*y+p[4]) + Math.cos(q[5]*z+p[5]);
-    nz = Math.cos(q[6]*x+p[6]) + Math.cos(q[7]*y+p[7]) + Math.cos(q[8]*z+p[8]);
+    nx = f(0, x) + f(1, y) + f(2, z);
+    ny = f(3, x) + f(4, y) + f(5, z);
+    nz = f(6, x) + f(7, y) + f(8, z);
     nz += 0.001 * Math.random();
     x = nx; y = ny; z = nz;
     var color = 3*z;
@@ -119,6 +121,7 @@ function EventLoop() {
 }
 
 // Launch it:
+midi_controls[0][0] = 0.2;
 SetupMidi();
 EventLoop();
 
