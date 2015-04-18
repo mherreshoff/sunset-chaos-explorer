@@ -29,24 +29,41 @@ var midi_controls = [
   [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
   [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]];
 
+var midi_button_press = function (group, idx) {
+  console.log("button press: " + group + ", " + idx);
+}
+// reassign this to get other behaviors.
+
 function MidiMessageEventHandler(event) {
 //  console.log("Message: " + event.data[0] + ", "
 //    + event.data[1] + ", " + event.data[2]);
 
   var row_starts = [77, 49, 29, 13];
-  var row = -1;
-  var col = -1;
-  for (var r = 0; r < row_starts.length; ++r) {
-    if (event.data[1] >= row_starts[r] &&
-        event.data[1] < row_starts[r] + 8 ){
-      row = r;
-      col = event.data[1] - row_starts[r];
+  if (event.data[0] == 176) {
+    var row = -1;
+    var col = -1;
+    for (var r = 0; r < row_starts.length; ++r) {
+      if (event.data[1] >= row_starts[r] &&
+          event.data[1] < row_starts[r] + 8 ){
+        row = r;
+        col = event.data[1] - row_starts[r];
+      }
+    }
+    if (row != -1) {
+      midi_controls[row][col] = event.data[2] / 127.0;
     }
   }
-  if (row != -1) {
-    midi_controls[row][col] = event.data[2] / 127.0;
-  }
 //  console.log(JSON.stringify(midi_controls));
+
+  var button_group_starts = [41, 57, 73, 89];
+  if (event.data[0] == 144 && event.data[2] == 127) {
+    for (var g = 0; g < button_group_starts.length; ++g) {
+      if (event.data[1] >= button_group_starts[g] &&
+          event.data[1] < button_group_starts[g] + 4 ){
+        midi_button_press(g, event.data[1]-button_group_starts[g]);
+      }
+    }
+  }
 }
 
 function SetupMidi() {
@@ -80,11 +97,13 @@ var image = null;
 function RenderFrame() {
   // Read the parameters from the controls:
   var input_params = new Array(18);
+  for (var i = 0; i < input_params.length; ++i) {
+   input_params[i] = 0;
+  }
   for (var i = 0; i < 8; ++i) {
     input_params[i] = Math.PI*2 * (midi_controls[0][i] + midi_controls[1][i] / 10.0);
     input_params[9+i] = 1.0 + (midi_controls[2][i] + midi_controls[3][i] / 10.0);
   }
-  input_params[8] = 0; input_params[17] = 0;
 
   // Compute the range of motion for the parameters this frame
   if (frame_end_params) {
