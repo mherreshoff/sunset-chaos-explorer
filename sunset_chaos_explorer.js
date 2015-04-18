@@ -68,6 +68,9 @@ function CoordToY(p) {
   return Math.round((p/6.0 + 0.5) * canvas.height);
 }
 
+var old_width = 0;
+var old_height = 0;
+var image = null;
 function RenderFrame() {
   // Read the parameters from the controls:
   var p = new Array();
@@ -82,9 +85,19 @@ function RenderFrame() {
   canvas.width = window.innerWidth * 0.9;
   canvas.height = window.innerHeight * 0.9;
   canvas_context.fillStyle = "rgba(0,0,0,1)";
-  canvas_context.fillRect(0,0,canvas.width,canvas.height);
 
-  var image = canvas_context.getImageData(0, 0, canvas.width, canvas.height);
+  if (canvas.width == old_width && canvas.height == old_height) {
+    var size = canvas.width * canvas.height;
+    console.log("fading.")
+    for (var pix = 0; pix < size; ++pix) {
+      for (var i = 0; i < 3; ++i) {
+        image.data[4*pix + i] *= 0.9;
+      }
+    }
+  } else {
+    canvas_context.fillRect(0,0,canvas.width,canvas.height);
+    image = canvas_context.getImageData(0, 0, canvas.width, canvas.height);
+  }
 
   // Render the strange attractor:
   var x = 0; var y = 0; var z = 0;
@@ -108,6 +121,8 @@ function RenderFrame() {
     image.data[px_offset + 2] = blue;
   }
   canvas_context.putImageData(image, 0, 0);
+  old_width = canvas.width;
+  old_height = canvas.height;
 }
 
 function EventLoop() {
