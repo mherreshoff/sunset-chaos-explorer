@@ -94,6 +94,16 @@ var frame_end_params = null;
 var old_width = 0;
 var old_height = 0;
 var image = null;
+
+var color_offset_options = [50, 100, 150, 200];
+var color_offsets = [200, 200, 100];
+
+midi_button_press = function (group, idx) {
+  if (group < 3) {
+    color_offsets[group] = color_offset_options[idx];
+  }
+}
+
 function RenderFrame() {
   // Read the parameters from the controls:
   var input_params = new Array(18);
@@ -161,9 +171,9 @@ function RenderFrame() {
       continue;
     }
     var color = 3*z;
-    var red = (200 + 50*Math.sin(color)) * fade;
-    var green = (200 + 50*Math.sin(2+color)) * fade;
-    var blue = (100 + 50*Math.sin(4+color)) * fade;
+    var red = (color_offsets[0] + 50*Math.sin(color)) * fade;
+    var green = (color_offsets[1] + 50*Math.sin(2+color)) * fade;
+    var blue = (color_offsets[2] + 50*Math.sin(4+color)) * fade;
     var px_offset = 4 * (CoordToY(y) *canvas.width + CoordToX(x));
     image.data[px_offset] = red;
     image.data[px_offset + 1] = green;
