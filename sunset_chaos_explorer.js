@@ -55,13 +55,18 @@ function MidiMessageEventHandler(event) {
   }
 //  console.log(JSON.stringify(midi_controls));
 
-  var button_group_starts = [41, 57, 73, 89];
+  var button_group_starts = [41, 57, 73, 89, 105];
   if (event.data[0] == 144 && event.data[2] == 127) {
     for (var g = 0; g < button_group_starts.length; ++g) {
       if (event.data[1] >= button_group_starts[g] &&
           event.data[1] < button_group_starts[g] + 4 ){
         midi_button_press(g, event.data[1]-button_group_starts[g]);
       }
+    }
+  }
+  if (event.data[0] == 176 && event.data[2] == 127) {
+    if (event.data[1] >= 104 && event.data[1] <= 107) {
+      midi_button_press(5, event.data[1]-104);
     }
   }
 }
@@ -98,14 +103,15 @@ var image = null;
 var color_offsets = [200, 200, 100];
 
 midi_button_press = function (group, idx) {
-  if (group < 3) {
-    var color = (4*group + idx)*2*Math.PI/12;
-    color_offsets[0] = Math.min(200, 150+100*Math.sin(color))
-    color_offsets[1] = Math.min(200, 150+100*Math.sin(color+2))
-    color_offsets[2] = Math.min(200, 150+100*Math.sin(color+4))
-  }
-  if (group == 3) {
-    midi_controls[0][idx] += Math.random(1) * 0.1
+  if (group < 4) {
+    var color = (4*group + idx)*2*Math.PI/16;
+    color_offsets[0] = Math.min(200, 150+80*Math.sin(color))
+    color_offsets[1] = Math.min(200, 150+80*Math.sin(color+2))
+    color_offsets[2] = Math.min(200, 150+80*Math.sin(color+4))
+  } else if (group == 4) {
+    midi_controls[0][idx] += (Math.random(1) - 0.5) * 0.1
+  } else if (group == 5) {
+    midi_controls[0][idx] += (Math.random(1) - 0.5)
   }
 }
 
