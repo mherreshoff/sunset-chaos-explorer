@@ -143,7 +143,6 @@ function RenderFrame() {
   // Draw the background:
   canvas.width = window.innerWidth * 0.9;
   canvas.height = window.innerHeight * 0.9;
-  canvas_context.fillStyle = "rgba(0,0,0,1)";
 
   if (canvas.width == old_width && canvas.height == old_height) {
     var size = canvas.width * canvas.height;
@@ -153,6 +152,7 @@ function RenderFrame() {
       }
     }
   } else {
+    canvas_context.fillStyle = "rgba(0,0,0,1)";
     canvas_context.fillRect(0,0,canvas.width,canvas.height);
     image = canvas_context.getImageData(0, 0, canvas.width, canvas.height);
   }
