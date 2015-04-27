@@ -84,10 +84,10 @@ var canvas = document.getElementById("canvas");
 var canvas_context = canvas.getContext("2d")
 
 function CoordToX(p) {
-  return Math.round((p/6.0 + 0.5) * canvas.width);
+  return Math.round((p/6.0 + 0.5) * (canvas.width-1))
 }
 function CoordToY(p) {
-  return Math.round((p/6.0 + 0.5) * canvas.height);
+  return Math.round((p/6.0 + 0.5) * (canvas.height-1));
 }
 
 var kParamChangePerFrame = 0.2;
@@ -115,7 +115,9 @@ midi_button_press = function (group, idx) {
   }
 }
 
+var cur_theta = 0;
 function RenderFrame() {
+  cur_theta += 0.001;
   // Read the parameters from the controls:
   var input_params = new Array(22);
   for (var i = 0; i < input_params.length; ++i) {
@@ -131,6 +133,7 @@ function RenderFrame() {
   for (var i = 0; i < 4; ++i){
     input_params[18+i] = midi_controls[i][7]
   }
+  input_params[20] += cur_theta;
 
   // Compute the range of motion for the parameters this frame
   if (frame_end_params) {
