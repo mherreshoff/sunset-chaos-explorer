@@ -117,13 +117,19 @@ midi_button_press = function (group, idx) {
 
 function RenderFrame() {
   // Read the parameters from the controls:
-  var input_params = new Array(18);
+  var input_params = new Array(22);
   for (var i = 0; i < input_params.length; ++i) {
    input_params[i] = 0;
   }
-  for (var i = 0; i < 8; ++i) {
+  for (var i = 0; i < 7; ++i) {
     input_params[i] = Math.PI*2 * (midi_controls[0][i] + midi_controls[1][i] / 10.0);
     input_params[9+i] = 1.0 + (midi_controls[2][i] + midi_controls[3][i] / 10.0);
+  }
+  input_params[16] = 1.0;
+  input_params[17] = 1.0;
+  // Read the last four parameters directly from the last column.
+  for (var i = 0; i < 4; ++i){
+    input_params[18+i] = midi_controls[i][7]
   }
 
   // Compute the range of motion for the parameters this frame
@@ -163,32 +169,47 @@ function RenderFrame() {
   function f(p, idx, v) {
     return Math.cos(p[9+idx]*v+p[idx]);
   }
-  var p = new Array(18);
+  function r(p) {
+    return (p[18]*0.05 + 0.001) * (2*Math.random()-1)
+  }
+  var p = new Array(input_params.length);
   for (var i = 0; i < kIterationsPerFrame; ++i){
     var new_frac = i/kIterationsPerFrame;
     var old_frac = 1 - new_frac;
-    for (var j = 0; j < frame_end_params.length; ++j) {
+    for (var j = 0; j < input_params.length; ++j) {
       p[j] = new_frac * frame_end_params[j] + old_frac * frame_start_params[j];
     }
 
     var fade = Math.pow(kFadePerFrame, old_frac);
 
-    nx = f(p, 0, x) + f(p, 1, y) + f(p, 2, z);
-    ny = f(p, 3, x) + f(p, 4, y) + f(p, 5, z);
-    nz = f(p, 6, x) + f(p, 7, y) + f(p, 8, z);
-    nz += 0.001 * Math.random();
+    nx = f(p, 0, x) + f(p, 1, y) + f(p, 2, z) + r(p);
+    ny = f(p, 3, x) + f(p, 4, y) + f(p, 5, z) + r(p);
+    nz = f(p, 6, x) + f(p, 7, y) + f(p, 8, z) + r(p);
     x = nx; y = ny; z = nz;
     if (i < 10) {
       continue;
     }
-    var color = 3*z;
-    var red = (color_offsets[0] + 50*Math.sin(color)) * fade;
-    var green = (color_offsets[1] + 50*Math.sin(2+color)) * fade;
-    var blue = (color_offsets[2] + 50*Math.sin(4+color)) * fade;
-    var px_offset = 4 * (CoordToY(y) *canvas.width + CoordToX(x));
-    image.data[px_offset] = red;
-    image.data[px_offset + 1] = green;
-    image.data[px_offset + 2] = blue;
+
+    var theta1 = Math.PI*2*p[20]
+    var x1 = x * Math.cos(theta1) + z * Math.sin(theta1)
+    var y1 = y
+    var z1 = - x * Math.sin(theta1) + z * Math.cos(theta1)
+
+    var theta2 = Math.PI*2*p[21]
+    var x2 = x1
+    var y2 = y1 * Math.cos(theta2) + z1 * Math.sin(theta2)
+    var z2 = - y1 * Math.sin(theta2) + z1 * Math.cos(theta2)
+
+    if (Math.abs(x2) < 3 && Math.abs(y2) < 3) {
+      var color = 3*z2+p[19]*2*Math.PI
+      var red = (color_offsets[0] + 50*Math.sin(color)) * fade;
+      var green = (color_offsets[1] + 50*Math.sin(2+color)) * fade;
+      var blue = (color_offsets[2] + 50*Math.sin(4+color)) * fade;
+      var px_offset = 4 * (CoordToY(y2) *canvas.width + CoordToX(x2));
+      image.data[px_offset] = red;
+      image.data[px_offset + 1] = green;
+      image.data[px_offset + 2] = blue;
+    }
   }
   canvas_context.putImageData(image, 0, 0);
 
