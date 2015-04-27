@@ -84,10 +84,10 @@ var canvas = document.getElementById("canvas");
 var canvas_context = canvas.getContext("2d")
 
 function CoordToX(p) {
-  return Math.round((p/6.0 + 0.5) * (canvas.width-1))
+  return Math.round((p/10.0 + 0.5) * (canvas.width-1))
 }
 function CoordToY(p) {
-  return Math.round((p/6.0 + 0.5) * (canvas.height-1));
+  return Math.round((p/10.0 + 0.5) * (canvas.height-1));
 }
 
 var kParamChangePerFrame = 0.2;
@@ -203,7 +203,7 @@ function RenderFrame() {
     var y2 = y1 * Math.cos(theta2) + z1 * Math.sin(theta2)
     var z2 = - y1 * Math.sin(theta2) + z1 * Math.cos(theta2)
 
-    if (Math.abs(x2) < 3 && Math.abs(y2) < 3) {
+    if (Math.abs(x2) < 5 && Math.abs(y2) < 5) {
       var color = 3*z2+p[19]*2*Math.PI
       var red = (color_offsets[0] + 50*Math.sin(color)) * fade;
       var green = (color_offsets[1] + 50*Math.sin(2+color)) * fade;
